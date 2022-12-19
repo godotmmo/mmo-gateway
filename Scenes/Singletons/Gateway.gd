@@ -9,7 +9,7 @@ func _ready():
 	StartServer()
 
 
-func _process(delta):
+func _process(_delta):
 	if !multiplayer.has_multiplayer_peer():
 		return;
 	multiplayer.poll()
