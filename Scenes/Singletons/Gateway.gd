@@ -37,14 +37,16 @@ func _Peer_Disconnected(player_id):
 	print("User " + str(player_id) + " Disconnected")
 
 
-@rpc
+@rpc(any_peer)
 func LoginRequest(username, password):
 	print("Login request received")
 	var player_id = multiplayer.get_remote_sender_id()
+	print("Player ID: " + str(player_id))
 	Authentication.AuthenticatePlayer(username, password, player_id)
 
 
 @rpc(call_local)
 func ReturnLoginRequest(result, player_id):
 	rpc_id(player_id, "ReturnLoginRequest", result)
+	await get_tree().create_timer(1).timeout
 	network.disconnect_peer(player_id)

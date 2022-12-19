@@ -25,13 +25,13 @@ func _Connection_Failed(gateway_id):
 	print(str(gateway_id) + "Failed to connect to authentication server")
 
 
-@rpc
+@rpc(call_local)
 func AuthenticatePlayer(username, password, player_id):
 	print("Sending out authentication request")
 	rpc_id(1, "AuthenticatePlayer", username, password, player_id)
 
 
-@rpc(call_local)
+@rpc
 func AuthenticationResults(result, player_id):
 	print("Results received and replying to player login request")
 	Gateway.ReturnLoginRequest(result, player_id)
