@@ -18,14 +18,13 @@ func _process(_delta):
 
 
 func StartServer():
-	# dtls setup
-	gateway.set_dtls_enabled(true)
-	gateway.set_dtls_key(key)
-	gateway.set_dtls_certificate(cert)
 	# Creates Server for the gateway
 	if (gateway.create_server(port, max_players)):
 		print("Error while starting gateway server")
 		return
+	
+	# dtls setup
+	gateway.host.dtls_server_setup(key, cert)
 	
 	# Creates a new default Multiplayer instance for the scene tree
 	get_tree().set_multiplayer(MultiplayerAPI.create_default_interface(), get_path())
