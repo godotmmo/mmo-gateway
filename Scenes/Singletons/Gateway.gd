@@ -59,3 +59,34 @@ func ReturnLoginRequest(result, player_id, token):
 	rpc_id(player_id, "ReturnLoginRequest", result, token)
 	await get_tree().create_timer(1).timeout
 	gateway.disconnect_peer(player_id)
+
+
+@rpc
+func RequestCreateAccount():
+	# Used for rpc checksum
+	pass
+
+
+@rpc(any_peer)
+func CreateAccountRequest(username, password):
+	var player_id = multiplayer.get_remote_sender_id()
+	var valid_request = true
+	if username == "":
+		valid_request = false
+	if password == "":
+		valid_request = false
+	if password.length() <= 6:
+		valid_request = false
+	
+	if valid_request == false:
+		ReturnCreateAccountRequest(valid_request, player_id, 1)
+	else:
+		Authentication.CreateAccount(username.to_lower(), password, player_id)
+
+
+@rpc(call_local)
+func ReturnCreateAccountRequest(result, player_id, message):
+	rpc_id(player_id, "ReturnCreateAccountRequest", result, message)
+	# 1 = failed to create, 2 = existing username, 3 = welcome
+	await get_tree().create_timer(1).timeout
+	gateway.disconnect_peer(player_id)
