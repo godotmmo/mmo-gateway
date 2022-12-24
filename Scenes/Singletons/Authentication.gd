@@ -1,6 +1,6 @@
 extends Node
 
-var network = ENetMultiplayerPeer.new()
+var authentication_client = ENetMultiplayerPeer.new()
 var ip = "that-genetics.at.ply.gg"
 var port = 44125
 
@@ -10,11 +10,11 @@ func _ready():
 
 
 func ConnectToServer():
-	network.create_client(ip, port)
-	multiplayer.set_multiplayer_peer(network)
+	authentication_client.create_client(ip, port)
+	multiplayer.set_multiplayer_peer(authentication_client)
 	
-	network.peer_disconnected.connect(_Connection_Failed)
-	network.peer_connected.connect(_Connection_Succeeded)
+	authentication_client.peer_disconnected.connect(_Connection_Failed)
+	authentication_client.peer_connected.connect(_Connection_Succeeded)
 
 
 func _Connection_Succeeded(gateway_id):
@@ -32,6 +32,6 @@ func AuthenticatePlayer(username, password, player_id):
 
 
 @rpc
-func AuthenticationResults(result, player_id):
+func AuthenticationResults(result, player_id, token):
 	print("Results received and replying to player login request")
-	Gateway.ReturnLoginRequest(result, player_id)
+	Gateway.ReturnLoginRequest(result, player_id, token)

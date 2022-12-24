@@ -1,6 +1,6 @@
 extends Node
 
-var network = ENetMultiplayerPeer.new()
+var gateway = ENetMultiplayerPeer.new()
 var port = 24598
 var max_players = 100
 
@@ -16,15 +16,19 @@ func _process(_delta):
 
 
 func StartServer():
-	if (network.create_server(port, max_players)):
+	# Creates Server for the gateway
+	if (gateway.create_server(port, max_players)):
 		print("Error while starting gateway server")
 		return
 	
+	# Creates a new default Multiplayer instance for the scene tree
 	get_tree().set_multiplayer(MultiplayerAPI.create_default_interface(), get_path())
-	multiplayer.set_multiplayer_peer(network)
+	
+	# Sets the server we created as a peer for the newly created Multiplayer instance
+	multiplayer.set_multiplayer_peer(gateway)
 	print("Gateway server started")
 	
-	if (network.peer_connected.connect(self._Peer_Connected) || network.peer_disconnected.connect(self._Peer_Disconnected)):
+	if (gateway.peer_connected.connect(self._Peer_Connected) || gateway.peer_disconnected.connect(self._Peer_Disconnected)):
 		print("Failed to authenticate")
 		return
 
@@ -45,8 +49,8 @@ func LoginRequest(username, password):
 	Authentication.AuthenticatePlayer(username, password, player_id)
 
 
-@rpc(call_local)
-func ReturnLoginRequest(result, player_id):
-	rpc_id(player_id, "ReturnLoginRequest", result)
+@rpc(call_remote)
+func ReturnLoginRequest(result, player_id, token):
+	rpc_id(player_id, "ReturnLoginRequest", result, token)
 	await get_tree().create_timer(1).timeout
-	network.disconnect_peer(player_id)
+	gateway.disconnect_peer(player_id)
