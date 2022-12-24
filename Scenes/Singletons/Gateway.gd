@@ -3,6 +3,8 @@ extends Node
 var gateway = ENetMultiplayerPeer.new()
 var port = 24598
 var max_players = 100
+var cert = load("res://certificate/X509_Certificate.crt")
+var key = load("res://certificate/X509_Key.key")
 
 
 func _ready():
@@ -16,6 +18,10 @@ func _process(_delta):
 
 
 func StartServer():
+	# dtls setup
+	gateway.set_dtls_enabled(true)
+	gateway.set_dtls_key(key)
+	gateway.set_dtls_certificate(cert)
 	# Creates Server for the gateway
 	if (gateway.create_server(port, max_players)):
 		print("Error while starting gateway server")
