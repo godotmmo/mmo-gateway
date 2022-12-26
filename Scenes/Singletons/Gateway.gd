@@ -1,23 +1,23 @@
 extends Node
 
-var gateway = ENetMultiplayerPeer.new()
-var port = 24598
-var max_players = 100
-var cert = load("res://certificate/X509_Certificate.crt")
-var key = load("res://certificate/X509_Key.key")
+var gateway: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+var port: int = 24598
+var max_players: int = 100
+var cert: Resource = load("res://certificate/X509_Certificate.crt")
+var key: Resource = load("res://certificate/X509_Key.key")
 
 
-func _ready():
+func _ready() -> void:
 	StartServer()
 
 
-func _process(_delta):
+func _process(_delta: float) -> void:
 	if !multiplayer.has_multiplayer_peer():
 		return;
 	multiplayer.poll()
 
 
-func StartServer():
+func StartServer() -> void:
 	# Creates Server for the gateway
 	if (gateway.create_server(port, max_players)):
 		print("Error while starting gateway server")
@@ -38,39 +38,33 @@ func StartServer():
 		return
 
 
-func _Peer_Connected(player_id):
+func _Peer_Connected(player_id: int) -> void:
 	print("User " + str(player_id) + " Connected")
 
 
-func _Peer_Disconnected(player_id):
+func _Peer_Disconnected(player_id: int) -> void:
 	print("User " + str(player_id) + " Disconnected")
 
 
 @rpc(any_peer)
-func LoginRequest(username, password):
+func LoginRequest(username: String, password: String) -> void:
 	print("Login request received")
-	var player_id = multiplayer.get_remote_sender_id()
+	var player_id: int = multiplayer.get_remote_sender_id()
 	print("Player ID: " + str(player_id))
 	Authentication.AuthenticatePlayer(username, password, player_id)
 
 
 @rpc(call_remote)
-func ReturnLoginRequest(result, player_id, token):
+func ReturnLoginRequest(result: bool, player_id: int, token: String) -> void:
 	rpc_id(player_id, "ReturnLoginRequest", result, token)
 	await get_tree().create_timer(3).timeout
 	gateway.disconnect_peer(player_id)
 
 
-@rpc
-func RequestCreateAccount():
-	# Used for rpc checksum
-	pass
-
-
 @rpc(any_peer)
-func CreateAccountRequest(username, password):
-	var player_id = multiplayer.get_remote_sender_id()
-	var valid_request = true
+func CreateAccountRequest(username: String, password: String) -> void:
+	var player_id: int = multiplayer.get_remote_sender_id()
+	var valid_request: bool = true
 	if username == "":
 		valid_request = false
 	if password == "":
@@ -85,8 +79,19 @@ func CreateAccountRequest(username, password):
 
 
 @rpc(call_local)
-func ReturnCreateAccountRequest(result, player_id, message):
+func ReturnCreateAccountRequest(result: bool, player_id: int, message: int) -> void:
 	rpc_id(player_id, "ReturnCreateAccountRequest", result, message)
 	# 1 = failed to create, 2 = existing username, 3 = welcome
 	await get_tree().create_timer(1).timeout
 	gateway.disconnect_peer(player_id)
+
+
+###################################################################################################
+#							All functions below are used for									  #
+#								rpc checksums													  #
+###################################################################################################
+
+@rpc
+func RequestCreateAccount():
+	# Used for rpc checksum
+	pass
