@@ -57,7 +57,7 @@ func LoginRequest(username, password):
 @rpc(call_remote)
 func ReturnLoginRequest(result, player_id, token):
 	rpc_id(player_id, "ReturnLoginRequest", result, token)
-	await get_tree().create_timer(1).timeout
+	await get_tree().create_timer(3).timeout
 	gateway.disconnect_peer(player_id)
 
 
