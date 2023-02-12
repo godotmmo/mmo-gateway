@@ -25,7 +25,7 @@ func _Connection_Failed(gateway_id: int) -> void:
 	print(str(gateway_id) + "Failed to connect to authentication server")
 
 
-@rpc(call_local)
+@rpc("call_local")
 func AuthenticatePlayer(username: String, password: String, player_id: int) -> void:
 	print("Sending out authentication request")
 	rpc_id(1, "AuthenticatePlayer", username, password, player_id)
@@ -37,13 +37,13 @@ func AuthenticationResults(result: bool, player_id: int, token: String) -> void:
 	Gateway.ReturnLoginRequest(result, player_id, token)
 
 
-@rpc(call_local)
+@rpc("call_local")
 func CreateAccount(username: String, password: String, player_id: int) -> void:
 	print("Sending out create account request")
 	rpc_id(1, "CreateAccount", username, password, player_id)
 
 
-@rpc(call_remote)
+@rpc("call_remote")
 func CreateAccountResults(result: bool, player_id: int, message: int) -> void:
 	print("Results received and replying to player create account request")
 	Gateway.ReturnCreateAccountRequest(result, player_id, message)

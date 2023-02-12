@@ -3,8 +3,8 @@ extends Node
 var gateway: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 var port: int = 24598
 var max_players: int = 100
-var cert: Resource = load("res://certificate/X509_Certificate.crt")
-var key: Resource = load("res://certificate/X509_Key.key")
+var cert = load("res://certificate/X509_Certificate.crt")
+var key = load("res://certificate/X509_Key.key")
 
 
 func _ready() -> void:
@@ -19,12 +19,11 @@ func _process(_delta: float) -> void:
 
 func StartServer() -> void:
 	# Creates Server for the gateway
-	if (gateway.create_server(port, max_players)):
-		print("Error while starting gateway server")
-		return
+	gateway.create_server(port, max_players)
 	
 	# dtls setup
-	gateway.host.dtls_server_setup(key, cert)
+	# var server_tls_options = TLSOptions.server(cert, key)
+	# gateway.host.dtls_server_setup(server_tls_options)
 	
 	# Creates a new default Multiplayer instance for the scene tree
 	get_tree().set_multiplayer(MultiplayerAPI.create_default_interface(), get_path())
@@ -33,9 +32,8 @@ func StartServer() -> void:
 	multiplayer.set_multiplayer_peer(gateway)
 	print("Gateway server started")
 	
-	if (gateway.peer_connected.connect(self._Peer_Connected) || gateway.peer_disconnected.connect(self._Peer_Disconnected)):
-		print("Failed to authenticate")
-		return
+	gateway.peer_connected.connect(self._Peer_Connected)
+	gateway.peer_disconnected.connect(self._Peer_Disconnected)
 
 
 func _Peer_Connected(player_id: int) -> void:
@@ -46,7 +44,7 @@ func _Peer_Disconnected(player_id: int) -> void:
 	print("User " + str(player_id) + " Disconnected")
 
 
-@rpc(any_peer)
+@rpc("any_peer")
 func LoginRequest(username: String, password: String) -> void:
 	print("Login request received")
 	var player_id: int = multiplayer.get_remote_sender_id()
@@ -54,14 +52,14 @@ func LoginRequest(username: String, password: String) -> void:
 	Authentication.AuthenticatePlayer(username, password, player_id)
 
 
-@rpc(call_remote)
+@rpc("call_remote")
 func ReturnLoginRequest(result: bool, player_id: int, token: String) -> void:
 	rpc_id(player_id, "ReturnLoginRequest", result, token)
 	await get_tree().create_timer(3).timeout
 	gateway.disconnect_peer(player_id)
 
 
-@rpc(any_peer)
+@rpc("any_peer")
 func CreateAccountRequest(username: String, password: String) -> void:
 	var player_id: int = multiplayer.get_remote_sender_id()
 	var valid_request: bool = true
@@ -78,7 +76,7 @@ func CreateAccountRequest(username: String, password: String) -> void:
 		Authentication.CreateAccount(username.to_lower(), password, player_id)
 
 
-@rpc(call_local)
+@rpc("call_local")
 func ReturnCreateAccountRequest(result: bool, player_id: int, message: int) -> void:
 	rpc_id(player_id, "ReturnCreateAccountRequest", result, message)
 	# 1 = failed to create, 2 = existing username, 3 = welcome
